@@ -30,6 +30,7 @@ public class CustomerApi {
 
 	@Autowired
 	private DemoOrdersRepository demoOrdersRepository;
+
 	@Autowired
 	private DemoCustomersDao demoCustomersDao;
 
@@ -54,24 +55,35 @@ public class CustomerApi {
 	@RequestMapping(value = "{custId}/custWithOrders", method = RequestMethod.GET)
 	public ResponseEntity<List<CustomerOrdersDTO>> getCustWithOrderByCustId(@PathVariable String custId)
 			throws NumberFormatException, InterruptedException, ExecutionException {
-		List<CustomerOrdersDTO> result = demoCustomersRepository.findCustomerWithOrder(Long.parseLong(custId));
+		Long startTime = System.nanoTime();
+		try {
+			List<CustomerOrdersDTO> result = demoCustomersRepository.findCustomerWithOrder(Long.parseLong(custId));
 
-		result.forEach(each -> {
-			try {
-				each.setOrders(new HashSet<DemoOrders>(demoOrdersRepository.findByCustomerId(each.getCustomerId()).get()));
-			} catch (InterruptedException | ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
+			result.forEach(each -> {
+				try {
+					each.setOrders(
+							new HashSet<DemoOrders>(demoOrdersRepository.findByCustomerId(each.getCustomerId()).get()));
+				} catch (InterruptedException | ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			});
 
-		return ResponseEntity.ok(result);
+			return ResponseEntity.ok(result);
+		} finally {
+			System.out.println("Elapsed Time (1): " + (System.nanoTime() - startTime));
+		}
 	}
 
 	@RequestMapping(value = "{custId}/custWithOrdersByExtractor", method = RequestMethod.GET)
 	public ResponseEntity<List<CustomerOrdersDTO>> getCustWithOrdersByExtractor(@PathVariable String custId)
 			throws NumberFormatException, InterruptedException, ExecutionException {
-		return ResponseEntity.ok(demoCustomersDao.findByCustomerId(Long.parseLong(custId)));
+		Long startTime = System.nanoTime();
+		try {
+			return ResponseEntity.ok(demoCustomersDao.findByCustomerId(Long.parseLong(custId)));
+		} finally {
+			System.out.println("Elapsed Time (2): " + (System.nanoTime() - startTime));
+		}
 	}
 
 }
